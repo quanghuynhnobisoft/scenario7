@@ -1,0 +1,216 @@
+<style>
+    .employee-table-header {
+        background: #00bcd4;
+        color: #fff;
+        font-weight: bold;
+        padding: 12px 8px;
+        text-align: center;
+    }
+    .employee-table-header.text-left {
+        text-align: left;
+    }
+    .employee-table-header.text-center {
+        text-align: center;
+    }
+    .employee-bold-col {
+        font-weight: bold;
+        padding: 10px 8px;
+        cursor: pointer;
+    }
+    .text-left {
+        text-align: left;
+    }
+    .text-center {
+        text-align: center;
+    }
+    .green-dot, .grey-dot {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        vertical-align: middle;
+    }
+    .green-dot {
+        background: #4caf50;
+    }
+    .grey-dot {
+        background: #bdbdbd;
+    }
+    .parent-row.odd {
+        background: #f5fafd;
+    }
+    .parent-row.even {
+        background: #fff;
+    }
+    .parent-row {
+        border-bottom: 1px solid #cfd8dc;
+        cursor: pointer;
+    }
+    .child-row {
+        display: none;
+        background: #fff;
+        border-bottom: 1px solid #cfd8dc;
+    }
+    .child-row td {
+        padding: 10px 8px;
+        font-style: italic;
+        color: #333;
+    }
+</style>
+<script>
+  // Ensure only parent rows get the even-odd background by toggling a class after rendering
+  document.addEventListener('DOMContentLoaded', function () {
+    const parentRows = document.querySelectorAll('tr.parent-row');
+    parentRows.forEach((row, idx) => {
+      row.classList.remove('odd', 'even');
+      row.classList.add(idx % 2 === 0 ? 'odd' : 'even');
+    });
+  });
+
+function toggleChildRow(row) {
+    row.classList.toggle('open');
+    let next = row.nextElementSibling;
+    while (next && next.classList.contains('child-row')) {
+        next.style.display = row.classList.contains('open') ? 'table-row' : 'none';
+        next = next.nextElementSibling;
+    }
+}
+</script>
+<div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#fff; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:40px 0;">
+  <div style="width:90vw; max-width:1400px; display:flex; flex-direction:column; align-items:flex-start;">
+    <div>
+      <button style="margin-bottom:24px; font-size:16px; padding:8px 24px; background:#00bcd4; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">
+        View By Role
+      </button>
+    </div>
+    <table style="width:100%; border-collapse:collapse; background:#fafcff; border-radius:6px; overflow:hidden;">
+      <thead>
+        <tr>
+          <th class="employee-table-header text-left">Employee Name</th>
+          <th class="employee-table-header text-left">Email</th>
+          <th class="employee-table-header text-center">Active</th>
+          <th class="employee-table-header text-center">Login Access</th>
+          <th class="employee-table-header text-center">Department</th>
+          <th class="employee-table-header text-center">Jan 2025</th>
+          <th class="employee-table-header text-center">Feb 2025</th>
+          <th class="employee-table-header text-center">Mar 2025</th>
+          <th class="employee-table-header text-center">Apr 2025</th>
+          <th class="employee-table-header text-center">May 2025</th>
+          <th class="employee-table-header text-center">Jun 2025</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- John Doe: 2 child rows -->
+        <tr class="parent-row">
+          <td class="employee-bold-col text-left" style="text-decoration:underline;" onclick="toggleChildRow(this.parentElement)">John Doe</td>
+          <td class="text-left">john.doe@email.com</td>
+          <td class="text-center"><span class="green-dot"></span></td>
+          <td class="text-center"><span class="green-dot"></span></td>
+          <td class="text-center">Sales</td>
+          <td class="employee-bold-col text-center">12</td>
+          <td class="employee-bold-col text-center">8</td>
+          <td class="employee-bold-col text-center">10</td>
+          <td class="employee-bold-col text-center">9</td>
+          <td class="employee-bold-col text-center">11</td>
+          <td class="employee-bold-col text-center">7</td>
+        </tr>
+        <tr class="child-row">
+          <td colspan="11">Additional details for John Doe - Row 1.</td>
+        </tr>
+        <tr class="child-row">
+          <td colspan="11">Additional details for John Doe - Row 2.</td>
+        </tr>
+
+        <!-- Jane Smith: 2 child rows -->
+        <tr class="parent-row">
+          <td class="employee-bold-col text-left" style="text-decoration:underline;" onclick="toggleChildRow(this.parentElement)">Jane Smith</td>
+          <td class="text-left">jane.smith@email.com</td>
+          <td class="text-center"><span class="grey-dot"></span></td>
+          <td class="text-center"><span class="grey-dot"></span></td>
+          <td class="text-center">Marketing</td>
+          <td class="employee-bold-col text-center">5</td>
+          <td class="employee-bold-col text-center">7</td>
+          <td class="employee-bold-col text-center"></td>
+          <td class="employee-bold-col text-center"></td>
+          <td class="employee-bold-col text-center"></td>
+          <td class="employee-bold-col text-center"></td>
+        </tr>
+        <tr class="child-row">
+          <td colspan="11">Additional details for Jane Smith - Row 1.</td>
+        </tr>
+        <tr class="child-row">
+          <td colspan="11">Additional details for Jane Smith - Row 2.</td>
+        </tr>
+
+        <!-- Alice Brown: 1 child row -->
+        <tr class="parent-row">
+          <td class="employee-bold-col text-left" style="text-decoration:underline;" onclick="toggleChildRow(this.parentElement)">Alice Brown</td>
+          <td class="text-left">alice.brown@email.com</td>
+          <td class="text-center"><span class="green-dot"></span></td>
+          <td class="text-center"><span class="grey-dot"></span></td>
+          <td class="text-center">HR</td>
+          <td class="employee-bold-col text-center">15</td>
+          <td class="employee-bold-col text-center">14</td>
+          <td class="employee-bold-col text-center">13</td>
+          <td class="employee-bold-col text-center">12</td>
+          <td class="employee-bold-col text-center">11</td>
+          <td class="employee-bold-col text-center">10</td>
+        </tr>
+        <tr class="child-row">
+          <td colspan="11">Additional details for Alice Brown.</td>
+        </tr>
+
+        <!-- Bob Lee: 3 child rows -->
+        <tr class="parent-row">
+          <td class="employee-bold-col text-left" style="text-decoration:underline;" onclick="toggleChildRow(this.parentElement)">Bob Lee</td>
+          <td class="text-left">bob.lee@email.com</td>
+          <td class="text-center"><span class="grey-dot"></span></td>
+          <td class="text-center"><span class="green-dot"></span></td>
+          <td class="text-center">IT</td>
+          <td class="employee-bold-col text-center">3</td>
+          <td class="employee-bold-col text-center">6</td>
+          <td class="employee-bold-col text-center">8</td>
+          <td class="employee-bold-col text-center">7</td>
+          <td class="employee-bold-col text-center">5</td>
+          <td class="employee-bold-col text-center">4</td>
+        </tr>
+        <tr class="child-row">
+          <td colspan="11">Additional details for Bob Lee - Row 1.</td>
+        </tr>
+        <tr class="child-row">
+          <td colspan="11">Additional details for Bob Lee - Row 2.</td>
+        </tr>
+        <tr class="child-row">
+          <td colspan="11">Additional details for Bob Lee - Row 3.</td>
+        </tr>
+
+        <!-- Emma White: 4 child rows -->
+        <tr class="parent-row">
+          <td class="employee-bold-col text-left" style="text-decoration:underline;" onclick="toggleChildRow(this.parentElement)">Emma White</td>
+          <td class="text-left">emma.white@email.com</td>
+          <td class="text-center"><span class="green-dot"></span></td>
+          <td class="text-center"><span class="green-dot"></span></td>
+          <td class="text-center">Finance</td>
+          <td class="employee-bold-col text-center">20</td>
+          <td class="employee-bold-col text-center">18</td>
+          <td class="employee-bold-col text-center">19</td>
+          <td class="employee-bold-col text-center">17</td>
+          <td class="employee-bold-col text-center">16</td>
+          <td class="employee-bold-col text-center">15</td>
+        </tr>
+        <tr class="child-row">
+          <td colspan="11">Additional details for Emma White - Row 1.</td>
+        </tr>
+        <tr class="child-row">
+          <td colspan="11">Additional details for Emma White - Row 2.</td>
+        </tr>
+        <tr class="child-row">
+          <td colspan="11">Additional details for Emma White - Row 3.</td>
+        </tr>
+        <tr class="child-row">
+          <td colspan="11">Additional details for Emma White - Row 4.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
