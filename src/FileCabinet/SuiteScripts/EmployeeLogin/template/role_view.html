@@ -1,0 +1,201 @@
+<#assign report = data.str?eval>
+<style>
+    .employee-table-header {
+        background: #00bcd4;
+        color: #fff;
+        font-weight: bold;
+        padding: 12px 8px;
+        text-align: center;
+    }
+
+    .employee-table th,
+    .employee-table td {
+        font-size: 14px;
+    }
+
+    .employee-table-header.text-left {
+        text-align: left;
+    }
+
+    .employee-table-header.text-center {
+        text-align: center;
+    }
+
+    .employee-bold-col {
+        font-weight: bold;
+        padding: 10px 8px;
+        cursor: pointer;
+    }
+
+    .text-left {
+        text-align: left;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .green-dot,
+    .grey-dot {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        vertical-align: middle;
+    }
+
+    .green-dot {
+        background: #4caf50;
+    }
+
+    .grey-dot {
+        background: #bdbdbd;
+    }
+
+    .parent-row.odd {
+        background: #f5fafd;
+    }
+
+    .parent-row.even {
+        background: #fff;
+    }
+
+    .parent-row {
+        border-bottom: 1px solid #cfd8dc;
+        cursor: pointer;
+    }
+
+    .child-row {
+        display: none;
+        background: #fff;
+        border-bottom: 1px solid #cfd8dc;
+    }
+
+    .child-row td {
+        padding: 10px 8px;
+        font-style: italic;
+        color: #333;
+        font-size: 14px; /* smaller font for child rows */
+    }
+
+    .child-row .role-name-cell {
+        padding-left: 40px !important; /* more left padding for hierarchy */
+        font-weight: bold;
+        font-style: normal;
+    }
+
+    table.employee-table {
+        border: 1px solid #cfd8dc;
+        border-radius: 6px;
+        overflow: hidden;
+        border-collapse: collapse;
+        background: #fff;
+        /* Updated shadow for all 4 borders */
+        box-shadow: 0 0 16px 4px rgba(44, 62, 80, 0.15);
+        width: 100%;
+        min-width: 900px;
+    }
+
+    .center-container {
+        min-height: 100vh;
+        width: 100%;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 40px 0;
+        box-sizing: border-box;
+    }
+
+    .table-wrapper {
+        width: 100vw;
+        max-width: 1400px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-sizing: border-box;
+        padding: 0 16px;
+    }
+
+    .table-scroll {
+        width: 100%;
+        overflow-x: auto;
+    }
+</style>
+<script>
+    // Ensure only parent rows get the even-odd background by toggling a class after rendering
+    document.addEventListener('DOMContentLoaded', function () {
+        const parentRows = document.querySelectorAll('tr.parent-row');
+        parentRows.forEach((row, idx) => {
+            row.classList.remove('odd', 'even');
+            row.classList.add(idx % 2 === 0 ? 'odd' : 'even');
+            // Make the whole row clickable
+            row.style.cursor = 'pointer';
+            row.onclick = function () {
+                toggleChildRow(row);
+            };
+        });
+    });
+
+    function toggleChildRow(row) {
+        row.classList.toggle('open');
+        let next = row.nextElementSibling;
+        while (next && next.classList.contains('child-row')) {
+            next.style.display = row.classList.contains('open') ? 'table-row' : 'none';
+            next = next.nextElementSibling;
+        }
+    }
+
+    function switchToUserView() {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('view', 'user');
+        window.location.href = currentUrl.toString();
+    }
+</script>
+<div class="center-container">
+    <div class="table-wrapper">
+        <div style="width:100%; display:flex; justify-content:flex-start;">
+            <button type="button"
+                style="margin-bottom:24px; font-size:14px; padding:8px 24px; background:#00bcd4; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="switchToUserView()">
+                View By User
+            </button>
+        </div>
+        <div class="table-scroll">
+            <table class="employee-table">
+                <thead>
+                    <tr>
+                        <th class="employee-table-header text-left" colspan="5">Role Name</th>
+                        <#list report.monthlabel as month>
+                            <th class="employee-table-header text-center">${month}</th>
+                        </#list>
+                    </tr>
+                </thead>
+                <tbody>
+                <#list report.summary?keys as lb>
+                    <tr class="parent-row">
+                        <td class="employee-bold-col text-left" style="text-decoration:underline;" colspan="5">${report.summary[lb].rolename}</td>
+                        <td class="employee-bold-col text-center"><#if report.summary[lb].month5 != 0>${report.summary[lb].month5}</#if></td>
+                        <td class="employee-bold-col text-center"><#if report.summary[lb].month4 != 0>${report.summary[lb].month4}</#if></td>
+                        <td class="employee-bold-col text-center"><#if report.summary[lb].month3 != 0>${report.summary[lb].month3}</#if></td>
+                        <td class="employee-bold-col text-center"><#if report.summary[lb].month2 != 0>${report.summary[lb].month2}</#if></td>
+                        <td class="employee-bold-col text-center"><#if report.summary[lb].month1 != 0>${report.summary[lb].month1}</#if></td>
+                        <td class="employee-bold-col text-center"><#if report.summary[lb].month0 != 0>${report.summary[lb].month0}</#if></td>
+                    </tr>
+                    <#list report.group[lb] as detail>
+                    <tr class="child-row">
+                        <td class="employee-bold-col text-left role-name-cell" colspan="5">${detail.username}</td>
+                        <td class="text-center"><#if detail.month5 != 0>${detail.month5}</#if></td>
+                        <td class="text-center"><#if detail.month4 != 0>${detail.month4}</#if></td>
+                        <td class="text-center"><#if detail.month3 != 0>${detail.month3}</#if></td>
+                        <td class="text-center"><#if detail.month2 != 0>${detail.month2}</#if></td>
+                        <td class="text-center"><#if detail.month1 != 0>${detail.month1}</#if></td>
+                        <td class="text-center"><#if detail.month0 != 0>${detail.month0}</#if></td>
+                    </tr>
+                    </#list>
+                </#list>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
