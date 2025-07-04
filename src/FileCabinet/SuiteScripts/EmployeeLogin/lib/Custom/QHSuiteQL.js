@@ -137,6 +137,7 @@ define([
         if (!sql || !pageSize) return result;
         log.debug("executePagedIndexQuery - query", sql);
         log.debug("executePagedIndexQuery - pageSize", pageSize);
+        log.debug("executePagedIndexQuery - pageIndex", pageIndex);
         let allResults = [];
         if (!pageIndex) pageIndex = 0;
         try {
@@ -144,16 +145,18 @@ define([
                 query: sql,
                 pageSize: pageSize
             });
-            if (pagedData.pageRanges && pageIndex > pagedData.pageRanges.length) {
-                pageIndex = pagedData.pageRanges.length - 1;
-            }
-            allResults = allResults.concat(pagedData.fetch(pageIndex).data.asMappedResults());
             log.debug("allResults.count", pagedData.count);
-            result.Records = allResults;
-            result.TotalRecords = pagedData.count;
-            result.PageSize = pageSize;
-            result.PageIndex = pageIndex;
-            result.PageRanges = pagedData.pageRanges;
+            if (pagedData.count) {
+                if (pagedData.pageRanges && pageIndex > pagedData.pageRanges.length) {
+                    pageIndex = pagedData.pageRanges.length - 1;
+                }
+                allResults = allResults.concat(pagedData.fetch(pageIndex).data.asMappedResults());
+                result.Records = allResults;
+                result.TotalRecords = pagedData.count;
+                result.PageSize = pageSize;
+                result.PageIndex = pageIndex;
+                result.PageRanges = pagedData.pageRanges;
+            }
         } catch (error) {
             log.error('executePagedIndexQuery', error);
             log.error('executePagedIndexQuery - stack', error.stack);
