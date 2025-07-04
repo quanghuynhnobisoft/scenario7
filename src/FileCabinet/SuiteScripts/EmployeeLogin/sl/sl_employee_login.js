@@ -6,6 +6,7 @@ define([
     'N/ui/serverWidget',
     'N/file',
     'N/render',
+    'N/url',
 
     // Libraries
     '/SuiteScripts/EmployeeLogin/lib/External/lodash.min.js',
@@ -20,6 +21,7 @@ define([
         serverWidget,
         file,
         render,
+        url,
 
         // Libraries
         _,
@@ -32,6 +34,9 @@ define([
         }
 
         const SQL_Last6Months_EmployeeLogin = `/SuiteScripts/EmployeeLogin/sql/Last6MonthsEmployeeLogin.sql`;
+
+        const SYSTEM_NOTE_SCRIPT_ID = 'customscript_sl_systemnote';
+        const SYSTEM_NOTE_DEPLOY_ID = 'customdeploy_sl_systemnote';
 
         /**
          * Defines the Suitelet script trigger point.
@@ -61,6 +66,10 @@ define([
 
             if (tmpFile) {
                 let { summary, group, monthlabel } = getData(view);
+                let systemNoteURL = url.resolveScript({
+                    scriptId: SYSTEM_NOTE_SCRIPT_ID,
+                    deploymentId: SYSTEM_NOTE_DEPLOY_ID
+                });
                 log.debug('summary', summary);
                 log.debug('group', group);
                 log.debug('monthlabel', monthlabel);
@@ -72,7 +81,7 @@ define([
                 renderer.addCustomDataSource({
                     format: render.DataSource.OBJECT,
                     alias: "data",
-                    data: { str: JSON.stringify({ summary, group, monthlabel }) }
+                    data: { str: JSON.stringify({ summary, group, monthlabel, systemNoteURL }) }
                 });
                 fld_html_view.defaultValue = renderer.renderAsString();
             }
