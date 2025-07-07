@@ -189,7 +189,7 @@
                     </tr>
                     <#list report.group[lb] as detail>
                     <tr class="child-row">
-                        <td class="employee-bold-col text-left role-name-cell" colspan="5"><a href="${report.systemNoteURL}&role=${detail.roleid}&user=${detail.userid}">${detail.username}</a></td>
+                        <td class="employee-bold-col text-left role-name-cell" colspan="5"><a href="${report.systemNoteURL}&role=${detail.roleid}&user=${detail.userid}&rname=${detail.rolename}&uname=${detail.username}">${detail.username}</a></td>
                         <td class="text-center"><#if detail.month5 != 0>${detail.month5}</#if></td>
                         <td class="text-center"><#if detail.month4 != 0>${detail.month4}</#if></td>
                         <td class="text-center"><#if detail.month3 != 0>${detail.month3}</#if></td>
