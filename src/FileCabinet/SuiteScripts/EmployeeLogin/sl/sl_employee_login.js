@@ -48,7 +48,7 @@ define([
         const onRequest = (scriptContext) => {
             const { request, response } = scriptContext;
             const form = serverWidget.createForm({
-                title: 'Employee Login'
+                title: 'Employee Login Activity (Last 6 Months)'
             });
 
             let fld_html_view = form.addField({
