@@ -184,16 +184,56 @@
         currentUrl.searchParams.set('exportcsv', 'T');
         window.location.href = currentUrl.toString();
     }
+    function onFilterChange() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('rectype', document.getElementById('filter-recordtype').value);
+        url.searchParams.set('recd', document.getElementById('filter-record').value);
+        url.searchParams.set('context', document.getElementById('filter-context').value);
+        console.log('Filter URL:', [document.getElementById('filter-recordtype').value, document.getElementById('filter-record').value, document.getElementById('filter-context').value]);
+        window.location.href = url.toString();
+    }
 
     document.addEventListener('DOMContentLoaded', function () {
         renderPaging();
     });
 </script>
 <div class="custom-container">
+    <#--  <div>
+        ${data.str}
+    </div>  -->
     <div class="table-wrapper">
+        <div style="width:100%; display:flex; gap: 18px; margin-bottom: 18px; align-items: center;">
+            <div style="flex:1; display:flex; align-items:center; justify-content:flex-start;">
+                <label for="filter-recordtype" style="font-weight:500; margin-right:6px; white-space:nowrap;">Filter By Record Type:</label>
+                <select id="filter-recordtype" onchange="onFilterChange()">
+                    <option value="">All</option>
+                    <#list report.recordtypeoptions as opt>
+                        <option value="${opt.value}" <#if report.filters?? && report.filters.rectype?has_content && report.filters.rectype == opt.value?string>selected</#if>>${opt.text}</option>
+                    </#list>
+                </select>
+            </div>
+            <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+                <label for="filter-record" style="font-weight:500; margin-right:6px; white-space:nowrap;">Filter By Record:</label>
+                <select id="filter-record" onchange="onFilterChange()">
+                    <option value="">All</option>
+                    <#list report.recordoptions as opt>
+                        <option value="${opt.type+"@@"+opt.value}" <#if report.filters?? && report.filters.recd?has_content && report.filters.recd == opt.type+"@@"+opt.value>selected</#if>>${opt.text}</option>
+                    </#list>
+                </select>
+            </div>
+            <div style="flex:1; display:flex; align-items:center; justify-content:flex-end; white-space:nowrap;">
+                <label for="filter-context" style="font-weight:500; margin-right:6px;">Filter By Context:</label>
+                <select id="filter-context" onchange="onFilterChange()">
+                    <option value="">All</option>
+                    <#list report.contextoptions as opt>
+                        <option value="${opt.value}" <#if report.filters?? && report.filters.context?has_content && report.filters.context == opt.value>selected</#if>>${opt.text}</option>
+                    </#list>
+                </select>
+            </div>
+        </div>
     <#if (report.Records?size == 0)>
         <div class="systemnote-empty-state">
-            <p>No system notes found for the selected filters.</p>
+            <p>No system notes found for last 6 months.</p>
         </div>
     <#else>
         <div style="width:100%; display:flex; justify-content:flex-end; gap: 12px; margin-bottom:24px;">
@@ -236,7 +276,7 @@
             </table>
         </div>
         <div class="paging-bar">
-            <span class="paging-info" id="paging-info">Page ${report.PageIndex?number + 1} of ${report.PageRanges?size}</span>
+            <span class="paging-info" id="paging-info">Page ${report.PageIndex?number + 1} of ${report.PageRanges?size} (Total: ${report.TotalRecords?number})</span>
             <button type="button" id="prev-btn" onclick="gotoPrevPage()">Prev</button>
             <button type="button" id="next-btn" onclick="gotoNextPage()">Next</button>
         </div>

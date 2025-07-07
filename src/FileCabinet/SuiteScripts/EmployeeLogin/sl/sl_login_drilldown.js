@@ -29,6 +29,10 @@ define([
 
         const VIEW_TEMPLATE = 'SuiteScripts/EmployeeLogin/template/systemnote_view.html';
         const SQL_Last6Months_SystemNoteByUserRole = `/SuiteScripts/EmployeeLogin/sql/SystemNoteByUserAndRole.sql`;
+        const SQL_RECORD_FILTER = '/SuiteScripts/EmployeeLogin/sql/SystemNoteAllRecords.sql';
+        const SQL_RECORDTYPE_FILTER = '/SuiteScripts/EmployeeLogin/sql/SystemNoteAllRecordTypes.sql';
+        const SQL_CONTEXT_FILTER = '/SuiteScripts/EmployeeLogin/sql/SystemNoteAllContexts.sql';
+
         const PAGE_SIZE = 20; // Default page size
 
         /**
@@ -40,20 +44,28 @@ define([
          */
         const onRequest = (scriptContext) => {
             const { request, response } = scriptContext;
-
+            log.debug('onRequest - parameters', request.parameters);
 
             if (request.method == 'GET') {
-                const { user, role, page, exportcsv } = request.parameters;
+                const { user, role, rname, uname, page, exportcsv, rectype, recd, context } = request.parameters;
+                let filters = {
+                    rectype: rectype || '',
+                    recd: recd || '',
+                    context: context || '',
+                };
                 try {
                     if (exportcsv && exportcsv == 'T') {
-                        let f_csv = exportCSV({ user, role, pageSize: PAGE_SIZE, pageIndex: -1 });
+                        let f_csv = exportCSV({ user, role, exportcsv, pageSize: PAGE_SIZE, pageIndex: -1, filters });
                         response.writeFile({
                             file: f_csv
                         });
                     } else {
+                        let title = 'System Notes';
+                        if (uname) title += ` for ${uname}`;
+                        if (rname) title += ` (Role: ${rname})`;
                         // Find User name and Role name
                         const form = serverWidget.createForm({
-                            title: 'System Notes'
+                            title: title
                         });
 
                         let tmplFile = file.load({
@@ -68,9 +80,7 @@ define([
                                 type: serverWidget.FieldType.INLINEHTML
                             });
 
-                            let data = getData({ user, role, pageSize: PAGE_SIZE, pageIndex: page });
-                            data.user ? form.title += ` for ${data.user}` : form.title += ' Unknown User';
-                            data.role ? form.title += ` (Role: ${data.role})` : form.title += ' (Unknown Role)';
+                            let data = getData({ user, role, pageSize: PAGE_SIZE, pageIndex: page, filters });
 
                             let htmlContent = tmplFile.getContents();
 
@@ -98,15 +108,22 @@ define([
         }
 
         const getData = (options) => {
-            const { user, role, pageSize, pageIndex, getAll } = options;
+            const { user, role, pageSize, pageIndex, exportcsv, filters = {} } = options;
             log.debug('getData - options', options);
 
             let data = { data: [], monthlabel: ['Unknown', 'Unknown', 'Unknown', 'Unknown', 'Unknown', 'Unknown'] };
-
+            let recordid = '';
             if (!user || !role) {
                 log.error('getData - Missing parameters', 'User and Role are required');
                 throw 'User and Role are required';
             }
+
+            let { rectype, recd, context } = filters;
+            if (!rectype && recd?.length) {
+                rectype = recd.split('@@')[0];
+            }
+
+            if (recd?.length) recordid = recd.split('@@')[1];
 
             let querydata = QHSuiteQL.getResults({
                 sqlFile: SQL_Last6Months_SystemNoteByUserRole,
@@ -117,11 +134,20 @@ define([
                 parameters: {
                     user: user ? ` AND s.name = ${user} ` : '',
                     role: role ? ` AND s.role = ${role} ` : '',
+                    recordtype: rectype ? ` AND s.recordTypeId IS ${rectype} ` : '',
+                    record: recordid ? ` AND s.recordId IS ${recordid} ` : '',
+                    context: context ? (context.toLowerCase() != 'null' ? ` AND s.context = '${context}' ` : ` AND s.context IS NULL`) : '',
                 },
                 pageSize: pageSize || 20,
-                pageIndex: getAll ? -1 : Math.max((pageIndex || 0) - 1, 0)
+                pageIndex: exportcsv == 'T' ? -1 : Math.max((pageIndex || 0) - 1, 0)
             });
             log.debug('querydata', querydata);
+
+            if (querydata.Records?.length) querydata.Records.forEach((record) => {
+                if (!record.recordtypeid) record.recordtypeid = '';
+                if (!record.recordid) record.recordid = '';
+                if (!record.contextid) record.contextid = '';
+            });
 
             data = {
                 monthlabel: querydata.Records?.length ? [
@@ -132,9 +158,58 @@ define([
                     querydata.Records[0].month1_label,
                     querydata.Records[0].month0_label
                 ] : [],
-                user: querydata.Records?.length ? querydata.Records[0].user : '',
-                role: querydata.Records?.length ? querydata.Records[0].role : '',
+                filters: {
+                    rectype,
+                    recd,
+                    context
+                },
+                recordtypeoptions: QHSuiteQL.getResults({
+                    sqlFile: SQL_RECORDTYPE_FILTER,
+                    absolutePath: true,
+                    modules: {
+                        file: file
+                    },
+                    parameters: {
+                        user: user ? ` AND s.name = ${user} ` : '',
+                        role: role ? ` AND s.role = ${role} ` : '',
+                    },
+                    pageIndex: -1
+                }).Records.map((v) => {
+                    if (!v.value) v.value = 'NULL';
+                    return v;
+                }),
+                contextoptions: QHSuiteQL.getResults({
+                    sqlFile: SQL_CONTEXT_FILTER,
+                    absolutePath: true,
+                    modules: {
+                        file: file
+                    },
+                    parameters: {
+                        user: user ? ` AND s.name = ${user} ` : '',
+                        role: role ? ` AND s.role = ${role} ` : '',
+                    },
+                    pageIndex: -1
+                }).Records.map((v) => {
+                    if (!v.value) v.value = 'NULL';
+                    return v;
+                }),
                 ...querydata,
+                recordoptions: QHSuiteQL.getResults({
+                    sqlFile: SQL_RECORD_FILTER,
+                    absolutePath: true,
+                    modules: {
+                        file: file
+                    },
+                    parameters: {
+                        user: user ? ` AND s.name = ${user} ` : '',
+                        role: role ? ` AND s.role = ${role} ` : '',
+                    },
+                    pageIndex: -1
+                }).Records.map((v) => {
+                    if (!v.value) v.value = 'NULL';
+                    if (!v.type) v.type = 'NULL';
+                    return v;
+                }),
             };
             log.debug('getData', data);
             return data;
@@ -142,12 +217,12 @@ define([
 
         // export getData function to csv
         function exportCSV(options) {
-            const { user, role } = options;
+            const { user, role, exportcsv, filters } = options;
             const fileName = `SystemNotes_${user || 'UnknownUser'}_${role || 'UnknownRole'}.csv`;
             let HEADERs = ['Record Type', 'Record', 'Context'];
             log.debug('exportCSV - options', options);
 
-            let data = getData({ user, role, getAll: true });
+            let data = getData({ user, role, exportcsv, filters });
 
             // Convert data to CSV format
             let csvRows = [HEADERs.join(',')];

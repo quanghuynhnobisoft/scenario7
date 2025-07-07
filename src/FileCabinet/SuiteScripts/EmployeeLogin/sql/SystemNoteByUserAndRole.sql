@@ -1,11 +1,11 @@
 SELECT 
-    BUILTIN.DF(s.name) as user,
-    BUILTIN.DF(s.role) as role,
+    s.context as contextid,
     COALESCE(BUILTIN.DF(s.context), 'Unknown') as context,
-    s.recordTypeId,
+    s.recordTypeId as recordtypeid,
     COALESCE(BUILTIN.DF(s.recordTypeId), 'Unknown') as recordtypename,
-    s.recordId,
+    s.recordId as recordid,
     COALESCE(s.record, 'Unknown') as record,
+    MAX(s.date) as lastdate,
     SUM(CASE WHEN to_char(s.date, 'YYYY-MM') = to_char(ADD_MONTHS(CURRENT_DATE(), 0), 'YYYY-MM') THEN 1 ELSE 0 END) +
 	SUM(CASE WHEN to_char(s.date, 'YYYY-MM') = to_char(ADD_MONTHS(CURRENT_DATE(), -1), 'YYYY-MM') THEN 1 ELSE 0 END) +
 	SUM(CASE WHEN to_char(s.date, 'YYYY-MM') = to_char(ADD_MONTHS(CURRENT_DATE(), -2), 'YYYY-MM') THEN 1 ELSE 0 END) +
@@ -24,15 +24,15 @@ SELECT
 	to_char(ADD_MONTHS(CURRENT_DATE(), -3), 'Mon YYYY') as month3_label,
 	to_char(ADD_MONTHS(CURRENT_DATE(), -4), 'Mon YYYY') as month4_label,
 	to_char(ADD_MONTHS(CURRENT_DATE(), -5), 'Mon YYYY') as month5_label
-FROM (
-    SELECT * FROM SystemNote ORDER BY date DESC
-) s
+FROM SystemNote s
 WHERE s.date BETWEEN TRUNC(ADD_MONTHS(CURRENT_DATE(), -5),'mm') AND LAST_DAY(CURRENT_DATE())
     @{user}
     @{role}
+    @{recordtype}
+    @{record}
+    @{context}
 GROUP BY
-    BUILTIN.DF(s.name),
-    BUILTIN.DF(s.role),
+    s.context,
     BUILTIN.DF(s.context),
     s.recordTypeId,
     BUILTIN.DF(s.recordTypeId),
@@ -44,3 +44,5 @@ GROUP BY
     to_char(ADD_MONTHS(CURRENT_DATE(), -3), 'Mon YYYY'),
     to_char(ADD_MONTHS(CURRENT_DATE(), -4), 'Mon YYYY'),
     to_char(ADD_MONTHS(CURRENT_DATE(), -5), 'Mon YYYY')
+ORDER BY
+    MAX(s.date) DESC
