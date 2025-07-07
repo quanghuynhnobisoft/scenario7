@@ -135,27 +135,6 @@
     }
 </style>
 <script>
-
-    // Ensure only parent rows get the even-odd background by toggling a class after rendering
-    document.addEventListener('DOMContentLoaded', function () {
-        const parentRows = document.querySelectorAll('tr.parent-row');
-        parentRows.forEach((row, idx) => {
-            row.classList.remove('odd', 'even');
-            row.classList.add(idx % 2 === 0 ? 'odd' : 'even');
-            // Make the whole row clickable
-            row.style.cursor = 'pointer';
-            row.onclick = function () {
-                toggleChildRow(row);
-            };
-        });
-    });
-
-    // Example data for demonstration
-    const systemnoteData = [];
-    const pageSize = ${report.PageSize};
-    let pageCount = ${report.PageRanges?size};
-    let currentPage = ${report.PageIndex?number + 1};
-
     function renderPaging() {
         document.getElementById('prev-btn').disabled = currentPage === 1;
         document.getElementById('next-btn').disabled = currentPage === pageCount;
@@ -193,14 +172,35 @@
         window.location.href = url.toString();
     }
 
+    // Ensure only parent rows get the even-odd background by toggling a class after rendering
+    document.addEventListener('DOMContentLoaded', function () {
+        const parentRows = document.querySelectorAll('tr.parent-row');
+        parentRows.forEach((row, idx) => {
+            row.classList.remove('odd', 'even');
+            row.classList.add(idx % 2 === 0 ? 'odd' : 'even');
+            // Make the whole row clickable
+            row.style.cursor = 'pointer';
+            row.onclick = function () {
+                toggleChildRow(row);
+            };
+        });
+    });
+
+    // Example data for demonstration
+    const systemnoteData = [];
+    const pageSize = ${report.PageSize!20};
+    let pageCount = ${(report.PageRanges![])?size};
+    let currentPage = ${report.PageIndex!0?number + 1};
+
     document.addEventListener('DOMContentLoaded', function () {
         renderPaging();
     });
+    
 </script>
 <div class="custom-container">
-    <#--  <div>
+    <div>
         ${data.str}
-    </div>  -->
+    </div>
     <div class="table-wrapper">
         <div style="width:100%; display:flex; gap: 18px; margin-bottom: 18px; align-items: center;">
             <div style="flex:1; display:flex; align-items:center; justify-content:flex-start;">

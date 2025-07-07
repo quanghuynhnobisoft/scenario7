@@ -134,9 +134,9 @@ define([
                 parameters: {
                     user: user ? ` AND s.name = ${user} ` : '',
                     role: role ? ` AND s.role = ${role} ` : '',
-                    recordtype: rectype ? ` AND s.recordTypeId IS ${rectype} ` : '',
-                    record: recordid ? ` AND s.recordId IS ${recordid} ` : '',
-                    context: context ? (context.toLowerCase() != 'null' ? ` AND s.context = '${context}' ` : ` AND s.context IS NULL`) : '',
+                    recordtype: rectype ? (rectype.toLowerCase() != 'null' ? ` AND s.recordTypeId = '${rectype}' ` : ` AND s.recordTypeId IS NULL `) : '',
+                    record: recordid ? (recordid.toLowerCase() != 'null' ? ` AND s.recordId = '${recordid}' ` : ` AND s.recordId IS NULL `) : '',
+                    context: context ? (context.toLowerCase() != 'null' ? ` AND s.context = '${context}' ` : ` AND s.context IS NULL `) : '',
                 },
                 pageSize: pageSize || 20,
                 pageIndex: exportcsv == 'T' ? -1 : Math.max((pageIndex || 0) - 1, 0)

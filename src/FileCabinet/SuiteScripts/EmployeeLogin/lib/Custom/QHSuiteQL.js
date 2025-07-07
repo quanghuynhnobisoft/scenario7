@@ -151,11 +151,11 @@ define([
                     pageIndex = pagedData.pageRanges.length - 1;
                 }
                 allResults = allResults.concat(pagedData.fetch(pageIndex).data.asMappedResults());
-                result.Records = allResults;
                 result.TotalRecords = pagedData.count;
                 result.PageSize = pageSize;
                 result.PageIndex = pageIndex;
                 result.PageRanges = pagedData.pageRanges;
+                result.Records = allResults;
             }
         } catch (error) {
             log.error('executePagedIndexQuery', error);
