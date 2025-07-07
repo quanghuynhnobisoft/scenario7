@@ -3,7 +3,7 @@ SELECT
     BUILTIN.DF(s.role) as role,
     COALESCE(BUILTIN.DF(s.context), 'Unknown') as context,
     s.recordTypeId,
-    COALESCE(BUILTIN.DF(s.recordTypeId), 'Unknown') as recordTypeName,
+    COALESCE(BUILTIN.DF(s.recordTypeId), 'Unknown') as recordtypename,
     s.recordId,
     COALESCE(s.record, 'Unknown') as record,
     SUM(CASE WHEN to_char(s.date, 'YYYY-MM') = to_char(ADD_MONTHS(CURRENT_DATE(), 0), 'YYYY-MM') THEN 1 ELSE 0 END) +

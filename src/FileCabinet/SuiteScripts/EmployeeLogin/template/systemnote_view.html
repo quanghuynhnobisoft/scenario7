@@ -179,6 +179,11 @@
             gotoPage(currentPage);
         }
     }
+    function exportCSV() {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('exportcsv', 'T');
+        window.location.href = currentUrl.toString();
+    }
 
     document.addEventListener('DOMContentLoaded', function () {
         renderPaging();
@@ -194,7 +199,7 @@
         <div style="width:100%; display:flex; justify-content:flex-end; gap: 12px; margin-bottom:24px;">
             <button type="button" style="background:#00bcd4;" onclick="window.location.href='/app/help/helpcenter.nl?fid=section_n691977.html';">Tips for System Note Searches</button>
             <button type="button" style="background:#e53935;" onclick="window.location.href='/app/common/search/search.nl?searchtype=SystemNote&rectype=-1&cu=T&e=F';">Create Detailed System Note Search</button>
-            <button type="button" style="background:#43a047;">Export All to CSV</button>
+            <button type="button" style="background:#43a047;" onclick="exportCSV()">Export All to CSV</button>
         </div>
         <div class="table-scroll">
             <table class="systemnote-table">

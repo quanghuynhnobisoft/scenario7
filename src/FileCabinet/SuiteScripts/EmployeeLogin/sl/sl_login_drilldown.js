@@ -41,43 +41,51 @@ define([
         const onRequest = (scriptContext) => {
             const { request, response } = scriptContext;
 
-            
+
             if (request.method == 'GET') {
-                const { user, role, page } = request.parameters;
+                const { user, role, page, exportcsv } = request.parameters;
                 try {
-                    // Find User name and Role name
-                    const form = serverWidget.createForm({
-                        title: 'System Notes for'
-                    });
-
-                    let fld_html_view = form.addField({
-                        id: 'custpage_html_template',
-                        label: 'View',
-                        type: serverWidget.FieldType.INLINEHTML
-                    });
-
-                    let tmplFile = file.load({
-                        id: VIEW_TEMPLATE
-                    });
-
-                    if (tmplFile) {
-                        let data = getData({ user, role, pageSize: PAGE_SIZE, pageIndex: page });
-                        data.user? form.title += ` ${data.user}` : form.title += ' Unknown User';
-                        data.role? form.title += ` (Role: ${data.role})` : form.title += ' (Unknown Role)';
-
-                        let htmlContent = tmplFile.getContents();
-
-                        let renderer = render.create();
-                        renderer.templateContent = htmlContent;
-                        renderer.addCustomDataSource({
-                            format: render.DataSource.OBJECT,
-                            alias: "data",
-                            data: { str: JSON.stringify(data) }
+                    if (exportcsv && exportcsv == 'T') {
+                        let f_csv = exportCSV({ user, role, pageSize: PAGE_SIZE, pageIndex: -1 });
+                        response.writeFile({
+                            file: f_csv
                         });
-                        fld_html_view.defaultValue = renderer.renderAsString();
-                    }
+                    } else {
+                        // Find User name and Role name
+                        const form = serverWidget.createForm({
+                            title: 'System Notes'
+                        });
 
-                    response.writePage(form);
+                        let tmplFile = file.load({
+                            id: VIEW_TEMPLATE
+                        });
+
+                        if (tmplFile) {
+
+                            let fld_html_view = form.addField({
+                                id: 'custpage_html_template',
+                                label: 'View',
+                                type: serverWidget.FieldType.INLINEHTML
+                            });
+
+                            let data = getData({ user, role, pageSize: PAGE_SIZE, pageIndex: page });
+                            data.user ? form.title += ` for ${data.user}` : form.title += ' Unknown User';
+                            data.role ? form.title += ` (Role: ${data.role})` : form.title += ' (Unknown Role)';
+
+                            let htmlContent = tmplFile.getContents();
+
+                            let renderer = render.create();
+                            renderer.templateContent = htmlContent;
+                            renderer.addCustomDataSource({
+                                format: render.DataSource.OBJECT,
+                                alias: "data",
+                                data: { str: JSON.stringify(data) }
+                            });
+                            fld_html_view.defaultValue = renderer.renderAsString();
+                        }
+
+                        response.writePage(form);
+                    }
                 } catch (error) {
                     log.error('Error rendering GET response', error);
                     response.write(JSON.stringify({ error: 'An error occurred while processing your request.' }));
@@ -90,7 +98,7 @@ define([
         }
 
         const getData = (options) => {
-            const { user, role, pageSize, pageIndex } = options;
+            const { user, role, pageSize, pageIndex, getAll } = options;
             log.debug('getData - options', options);
 
             let data = { data: [], monthlabel: ['Unknown', 'Unknown', 'Unknown', 'Unknown', 'Unknown', 'Unknown'] };
@@ -111,7 +119,7 @@ define([
                     role: role ? ` AND s.role = ${role} ` : '',
                 },
                 pageSize: pageSize || 20,
-                pageIndex: Math.max((pageIndex || 0) - 1, 0)
+                pageIndex: getAll ? -1 : Math.max((pageIndex || 0) - 1, 0)
             });
             log.debug('querydata', querydata);
 
@@ -130,6 +138,35 @@ define([
             };
             log.debug('getData', data);
             return data;
+        }
+
+        // export getData function to csv
+        function exportCSV(options) {
+            const { user, role } = options;
+            const fileName = `SystemNotes_${user || 'UnknownUser'}_${role || 'UnknownRole'}.csv`;
+            let HEADERs = ['Record Type', 'Record', 'Context'];
+            log.debug('exportCSV - options', options);
+
+            let data = getData({ user, role, getAll: true });
+
+            // Convert data to CSV format
+            let csvRows = [HEADERs.join(',')];
+            if (data.Records?.length) {
+                HEADERs.push(...data.monthlabel, 'Total');
+                csvRows = [
+                    HEADERs.join(','),
+                    ...data.Records.map(record => `"${record.recordtypename}","${record.record}","${record.context}",${record.month5 || 0},${record.month4 || 0},${record.month3 || 0},${record.month2 || 0},${record.month1 || 0},${record.month0 || 0},${record.total || 0}`)
+                ];
+            }
+            log.debug('exportCSV - csvRows', csvRows);
+
+            let f_csv = file.create({
+                name: fileName,
+                fileType: file.Type.CSV,
+                contents: csvRows.join('\n'),
+                encode: file.Encoding.UTF8,
+            });
+            return f_csv;
         }
 
         return { onRequest }
