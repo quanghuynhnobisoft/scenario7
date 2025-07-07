@@ -147,7 +147,7 @@ define([
             });
             log.debug("allResults.count", pagedData.count);
             if (pagedData.count) {
-                if (pagedData.pageRanges && pageIndex > pagedData.pageRanges.length) {
+                if (pagedData.pageRanges && pageIndex >= pagedData.pageRanges.length) {
                     pageIndex = pagedData.pageRanges.length - 1;
                 }
                 allResults = allResults.concat(pagedData.fetch(pageIndex).data.asMappedResults());
